@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genpas
+  labels:
+    app: genpas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genpas
+  template:
+    metadata:
+      labels:
+        app: genpas
+    spec:
+      imagePullSecrets:
+        - name: genpass
+      containers:
+        - name: genpas
+          image: registry.it-projects.pro/devops/genpass:0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "16Mi"
+              cpu: "50m"
+            limits:
+              memory: "64Mi"
+              cpu: "100m"

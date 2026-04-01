@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Генератор паролей</title>
+<script src="jquery.min.js"></script>
+<script src="seedrandom.js"></script>
+<script src="pwgen.js"></script>
+<script src="genpas.js"></script>
+<link href="style.css" rel="stylesheet" type="text/css" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+<div class="container">
+<h1>Генератор паролей</h1>
+
+<fieldset>
+<legend>Режим работы:</legend>
+<div class='divblock'>
+<table><tr>
+<td><input type='radio' id='fullrand' name='passmode' checked /><label for='fullrand'> Полный рандом<br><small>очень устойчив, очень сложно запомнить</small></label></td>
+<td width='14'>&nbsp;</td>
+<td><input type='radio' id='pwgen' name='passmode' /><label for='pwgen'> Произносимый пароль по алгоритму pwgen<br><small>весьма устойчив, возможно запомнить</small></label></td>
+</tr></table>
+</div>
+</fieldset>
+
+<fieldset>
+<legend>Использовать наборы символов:</legend>
+<div class='divblock'>
+<div class='inpblock'><input type='checkbox' id='az' checked /><label for='az'> a-z</label></div>
+<div class='inpblock'><input type='checkbox' id='az2' checked /><label for='az2'> A-Z</label></div>
+<div class='inpblock'><input type='checkbox' id='n09' checked /><label for='n09'> 0-9</label></div>
+<div class='inpblock'><input type='checkbox' id='schr' checked /><label for='schr'> !"#$%&amp;'()*+,-./:;<=>?@[\]^_`{|}~</label></div>
+<div class='inpblock'><input type='checkbox' name='skipamb' id='skipamb' /><label for='skipamb'> исключать символы из набора B8G6I1l|0OQDS5Z2</label></div>
+</div>
+</fieldset>
+
+<div class='divblock'>Длина: <input type='text' id='pwlen' size='2' value='12' /> Количество: <input type='text' id='pwnum' size='2' value='12' /></div>
+<div class='divblock'><input type='checkbox' id='use_entropy' checked /><label for='use_entropy'> Использовать энтропию для инициализации генератора случайных чисел.<br><small>Вам нужно будет подвигать и пощелкать мышкой и клавиатурой, чтобы получить максимально случайный пароль.</small></label></div>
+<div class='divblock'><input id='genbutton' name='genbutton' type='button' value='Генерировать' /></div>
+<div id='diventropy'><div id='text'></div><div id='counter'></div></div>
+<div id='pass_cmnt'></div>
+<div id='pass'></div>
+</div>
+</body>
+</html>

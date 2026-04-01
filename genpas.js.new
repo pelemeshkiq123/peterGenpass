@@ -1,0 +1,72 @@
+// (c) Peter <i@peter.am> 2011
+// * This file may be distributed under the terms of the GNU General
+// * Public License.
+
+var genpas_spec_symbols = '!"#$%&\'()*+,-./:;<=>?@[\]^_`{|}~';
+
+function htmlspecialchars(text) {
+	var chars = Array("&", "<", ">", '"', "'");
+	var replacements = Array("&amp;", "<", ">", """, "'");
+	for (var i=0; i<chars.length; i++) {
+		var re = new RegExp(chars[i], "gi");
+		if(re.test(text)) {
+			text = text.replace(re, replacements[i]);
+		}
+	}
+	return text;
+}
+
+function gen_pw() {
+	$('#genbutton').attr('disabled', 'disabled');
+	$('#pass_cmnt').html('');
+	$('#pass').hide();
+	$('#pass').html('');
+	gen_pw2();
+}
+
+function gen_rand0() {
+	return Math.random();
+}
+
+function gen_rand(min, max) {
+	return Math.floor(gen_rand0() * (max - min + 1)) + min;
+}
+
+function gen_pw2() {
+	var pwlen = $('#pwlen').val();
+	var pwnum = $('#pwnum').val();
+	var symbols = '';
+	if($('#az').attr('checked')) symbols = symbols + 'abcdefghijklmnopqrstuvwxyz';
+	if($('#az2').attr('checked')) symbols = symbols + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	if($('#n09').attr('checked')) symbols = symbols + '1234567890';
+	if($('#schr').attr('checked')) symbols = symbols + genpas_spec_symbols;
+	if($('#skipamb').attr('checked')) {
+		symbols = symbols.replace(new RegExp('[B8G6I1l\\|0OQDS5Z2]','g'),'');
+	}
+	var symblen = symbols.length - 1;
+	$('#pass_cmnt').html('Стойкость одного пароля: <i>'+Math.floor(Math.log(symblen)*(pwlen/Math.log(2)))
+						+' bits</i><br>Стойкость всего списка паролей: <i>'+Math.floor(Math.log(symblen)*((pwlen*pwnum)/Math.log(2)))
+						+' bits</i>');
+	var f_fullrand = $('#fullrand').attr('checked');
+	var f_pwgen = $('#pwgen').attr('checked');
+	for(j=1;j<=pwnum;j++) {
+		var pw = '';
+		if(f_fullrand) {
+			for(i=1;i<=pwlen;i++) {
+				pw = pw + symbols.substr(gen_rand(0,symblen),1);
+			}
+		} else if(f_pwgen) {
+			pw = pwgen_generate(pwlen, $('#az2').attr('checked'), $('#n09').attr('checked'), $('#schr').attr('checked'));
+		}
+		$('#pass').html($('#pass').html() + htmlspecialchars(pw) + '<br>');
+	}
+	$('#pass').fadeIn('fast');
+	$('#genbutton').removeAttr('disabled');
+}
+
+$(function() {
+	$('#genbutton').click(gen_pw);
+	$('#fullrand').change(function() {$('#skipamb').removeAttr('disabled');});
+	$('#pwgen').change(function() {$('#skipamb').attr('disabled', 'disabled'); $('#skipamb').removeAttr('checked');});
+});
+
