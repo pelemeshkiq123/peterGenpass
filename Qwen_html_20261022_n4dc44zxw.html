@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Простая Рисовалка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            width: 95vw;
+            max-width: 1400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 5px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .tool-btn {
+            padding: 4px 10px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+
+        .tool-btn:hover:not(:disabled) {
+            background: #f0f0f0;
+            border-color: #999;
+        }
+
+        .tool-btn.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .tool-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .color-option {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.active {
+            border-color: #333;
+            transform: scale(1.15);
+        }
+
+        #canvas {
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: crosshair;
+            display: block;
+            margin: 0 auto;
+            background: white;
+            width: 100%;
+            height: auto;
+        }
+
+        .text-input-container {
+            display: none;
+            margin-top: 8px;
+            gap: 8px;
+            align-items: center;
+            padding: 5px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .text-input-container.show {
+            display: flex;
+        }
+
+        #textInput {
+            padding: 5px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex: 1;
+            font-size: 12px;
+        }
+
+        .clear-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: auto;
+            font-size: 12px;
+        }
+
+        .clear-btn:hover {
+            background: #cc0000;
+        }
+
+        .size-slider {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+        }
+
+        #brushSize {
+            width: 80px;
+        }
+
+        label {
+            font-size: 11px;
+        }
+
+        #sizeValue {
+            font-size: 11px;
+            min-width: 20px;
+        }
+
+        .undo-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .undo-btn:hover:not(:disabled) {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1></h1>
+        
+        <div class="toolbar">
+            <button class="tool-btn active" data-tool="pen">✏️ Ручка</button>
+            <button class="tool-btn" data-tool="line">📏 Линия</button>
+            <button class="tool-btn" data-tool="rectangle">⬜ Прямоугольник</button>
+            <button class="tool-btn" data-tool="circle">⭕ Круг</button>
+            <button class="tool-btn" data-tool="text">📝 Текст</button>
+            
+            <div class="size-slider">
+                <label>Размер:</label>
+                <input type="range" id="brushSize" min="1" max="20" value="3">
+                <span id="sizeValue">3</span>
+            </div>
+            
+            <div class="color-picker">
+                <div class="color-option active" style="background: #000;" data-color="#000"></div>
+                <div class="color-option" style="background: #ff0000;" data-color="#ff0000"></div>
+                <div class="color-option" style="background: #00ff00;" data-color="#00ff00"></div>
+                <div class="color-option" style="background: #0000ff;" data-color="#0000ff"></div>
+                <div class="color-option" style="background: #ffff00;" data-color="#ffff00"></div>
+                <div class="color-option" style="background: #ff00ff;" data-color="#ff00ff"></div>
+            </div>
+            
+            <button class="undo-btn" id="undoBtn" onclick="undo()" disabled>↩️ Назад</button>
+            <button class="clear-btn" onclick="clearCanvas()">🗑️ Очистить</button>
+        </div>
+        
+        <div class="text-input-container" id="textInputContainer">
+            <input type="text" id="textInput" placeholder="Введите текст...">
+            <button class="tool-btn" onclick="addText()">Добавить</button>
+        </div>
+        
+        <canvas id="canvas" width="1400" height="800"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const undoBtn = document.getElementById('undoBtn');
+        
+        let currentTool = 'pen';
+        let currentColor = '#000';
+        let brushSize = 3;
+        let isDrawing = false;
+        let startX, startY;
+        let snapshot;
+        
+        // История действий
+        const history = [];
+        const MAX_HISTORY = 50;
+
+        // Сохранение начального состояния (пустой холст)
+        history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+
+        // Сохранение текущего состояния в историю
+        function saveState() {
+            history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            if (history.length > MAX_HISTORY) {
+                history.shift(); // удаляем самое старое состояние
+            }
+            updateUndoButton();
+        }
+
+        // Отмена последнего действия
+        function undo() {
+            if (history.length > 1) {
+                history.pop(); // удаляем текущее состояние
+                const previousState = history[history.length - 1];
+                ctx.putImageData(previousState, 0, 0);
+            }
+            updateUndoButton();
+        }
+
+        // Обновление состояния кнопки "Назад"
+        function updateUndoButton() {
+            undoBtn.disabled = history.length <= 1;
+        }
+
+        // Выбор инструмента
+        document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTool = btn.dataset.tool;
+                
+                const textInputContainer = document.getElementById('textInputContainer');
+                if (currentTool === 'text') {
+                    textInputContainer.classList.add('show');
+                } else {
+                    textInputContainer.classList.remove('show');
+                }
+            });
+        });
+
+        // Выбор цвета
+        document.querySelectorAll('.color-option').forEach(color => {
+            color.addEventListener('click', () => {
+                document.querySelectorAll('.color-option').forEach(c => c.classList.remove('active'));
+                color.classList.add('active');
+                currentColor = color.dataset.color;
+            });
+        });
+
+        // Размер кисти
+        const brushSizeSlider = document.getElementById('brushSize');
+        const sizeValue = document.getElementById('sizeValue');
+        brushSizeSlider.addEventListener('input', (e) => {
+            brushSize = e.target.value;
+            sizeValue.textContent = brushSize;
+        });
+
+        // Рисование
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            startX = (e.clientX - rect.left) * scaleX;
+            startY = (e.clientY - rect.top) * scaleY;
+            
+            if (currentTool === 'pen') {
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+            } else if (['line', 'rectangle', 'circle'].includes(currentTool)) {
+                snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+            
+            ctx.strokeStyle = currentColor;
+            ctx.fillStyle = currentColor;
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = 'round';
+            
+            if (currentTool === 'pen') {
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            } else if (currentTool === 'line') {
+                ctx.putImageData(snapshot, 0, 0);
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            } else if (currentTool === 'rectangle') {
+                ctx.putImageData(snapshot, 0, 0);
+                ctx.beginPath();
+                ctx.rect(startX, startY, x - startX, y - startY);
+                ctx.stroke();
+            } else if (currentTool === 'circle') {
+                ctx.putImageData(snapshot, 0, 0);
+                ctx.beginPath();
+                const radius = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
+                ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+                ctx.stroke();
+            }
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                saveState(); // сохраняем состояние после завершения действия
+            }
+        }
+
+        // Добавление текста
+        function addText() {
+            const text = document.getElementById('textInput').value;
+            if (text) {
+                ctx.font = `${brushSize * 5}px Arial`;
+                ctx.fillStyle = currentColor;
+                ctx.fillText(text, startX || 50, startY || 50);
+                document.getElementById('textInput').value = '';
+                saveState(); // сохраняем состояние после добавления текста
+            }
+        }
+
+        // Очистка холста
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            saveState(); // очистку тоже можно отменить
+        }
+
+        // Поддержка Enter для добавления текста
+        document.getElementById('textInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addText();
+            }
+        });
+
+        // Горячая клавиша Ctrl+Z для отмены
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                undo();
+            }
+        });
+    </script>
+</body>
+</html>
